@@ -121,7 +121,147 @@ class ListingController
             $query = "INSERT INTO listings ({$fields}) VALUES ({$values})";
             $this->db->query($query, $newListingData);
 
-            redirect('/listings');
+            redirect('/workopia1/public/listings');
         }
+    }
+
+    /**
+     * Delete a listing
+     * 
+     * @param array params
+     * @return void
+     * 
+     */
+    public function destroy($params)
+    {
+        $id = $params['id'];
+
+        $params = [
+            'id' => $id
+        ];
+
+        $listing = $this->db->query('SELECT * FROM LISTINGS WHERE id = :id', $params)->fetch();
+
+        if (!$listing) {
+            ErrorController::notFound('Listing not found');
+            return;
+        }
+
+        $this->db->query('DELETE FROM listings WHERE id = :id', $params);
+
+        // Set flash message
+
+        $_SESSION['success_message'] = 'Listing deleted succesfully';
+
+        redirect('/workopia1/public/listings');
+    }
+
+    // Show the edit form
+
+    public function edit($params)
+    {
+        $id = $params['id'] ?? '';
+
+        $params = [
+            'id' => $id
+        ];
+
+        $listing = $this->db->query('SELECT * FROM listings WHERE id = :id', $params)->fetch();
+
+        // Check if listing exists
+
+        if (!$listing) {
+            ErrorController::notFound('Listing not found');
+            return;
+        }
+
+
+
+        loadView(
+            'listings/edit',
+            [
+                'listing' => $listing
+            ]
+        );
+    }
+
+    /**
+     * Update a listing
+     * @param array $params
+     * @return void
+     */
+    public function update($params)
+    {
+
+        $id = $params['id'] ?? '';
+
+        $params = [
+            'id' => $id
+        ];
+
+        $listing = $this->db->query('SELECT * FROM listings WHERE id = :id', $params)->fetch();
+
+        // Check if listing exists
+
+        if (!$listing) {
+            ErrorController::notFound('Listing not found');
+            return;
+        }
+
+        $allowedFields =  [
+            "title",
+            "description",
+            "salary",
+            "requirements",
+            "benefits",
+            "company",
+            "address",
+            "city",
+            "state",
+            "phone",
+            "email",
+            "tags"
+        ];
+
+        $updatedValues = [];
+
+        $updatedValues = array_intersect_key($_POST, array_flip($allowedFields));
+
+        $updatedValues = array_map('sanitize', $updatedValues);
+
+        $requiredFields = ['title', 'description', 'salary', 'email', 'city', 'state'];
+
+        $errors = [];
+
+        foreach ($requiredFields as $field) {
+            if (empty($updatedValues[$field]) || !Validation::string($updatedValues[$field])) {
+                $errors[$field] = ucfirst($field) . ' is required';
+            }
+        }
+
+        if (!empty($errors)) {
+            loadView('listing/edit', [
+                'listing' => $listing,
+                'errors' => $errors
+            ]);
+            exit;
+        } else {
+            // Submit to database
+            $updateFields = [];
+
+            foreach (array_keys($updatedValues) as $field) {
+                $updateFields[] = "{$field} = :{$field}";
+            }
+        }
+        $updateFields = implode(', ', $updateFields);
+
+        $updateQuery = "UPDATE listings SET $updateFields WHERE id = :id";
+
+        $updatedValues['id'] = $id;
+        $this->db->query($updateQuery, $updatedValues);
+
+        $_SESSION['success_message'] = 'Listing Updated';
+
+        redirect("/workopia1/public/listings/$id");
     }
 }

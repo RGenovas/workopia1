@@ -10,10 +10,12 @@
                 <i class="fa fa-arrow-alt-circle-left"></i>
                 Back To Listings
             </a>
+            <?= loadPartial('message') ?>
             <div class="flex space-x-4 ml-4">
-                <a href="/edit" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">Edit</a>
+                <a href='/workopia1/public/listings/edit/<?= $listing->id ?>' class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">Edit</a>
                 <!-- Delete Form -->
                 <form method="POST">
+                    <input type="hidden" name="_method" value="DELETE">
                     <button type="submit" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Delete</button>
                 </form>
                 <!-- End Delete Form -->
@@ -28,14 +30,13 @@
                 <li class="mb-2"><strong>Salary:</strong><?= formatSalary($listing->salary) ?></li>
                 <li class="mb-2">
                     <strong>Location:</strong><?= $listing->city ?>, <?= $listing->state ?>
-                    <
-                        </li>
-                        <?php if (!empty($listing->tags)) : ?>
-                <li class="mb-2">
-                    <strong>Tags:</strong><?= $listing->tags ?>
-
                 </li>
-            <?php endif; ?>
+                <?php if (!empty($listing->tags)) : ?>
+                    <li class="mb-2">
+                        <strong>Tags:</strong><?= $listing->tags ?>
+
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
